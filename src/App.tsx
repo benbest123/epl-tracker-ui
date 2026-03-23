@@ -1,5 +1,12 @@
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home.tsx";
+
 const App = () => {
-  return <div>EPL Tracker</div>;
+  return (
+    <Routes>
+      <Route path='/' element={<Home />} />
+    </Routes>
+  );
 };
 
 export default App;
