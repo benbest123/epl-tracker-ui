@@ -115,3 +115,8 @@ body {
   background-color: var(--white);
   padding: 4px;
 }
+
+.desktop {
+  min-height: 100vh;
+  padding: 20px;
+}
