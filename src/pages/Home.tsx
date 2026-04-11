@@ -1,31 +1,41 @@
 import { useEffect, useState } from "react";
-import { getMatches } from "../api/index.ts";
-import type { Match } from "../types/index.ts";
+import { getMatches, getTeams } from "../api/index.ts";
+import { calculateStandings } from "../utils/standings.ts";
+import type { Match, Team, Standing } from "../types/index.ts";
+import Table from "../components/Table.tsx";
 
 const Home = () => {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [standings, setStandings] = useState<Standing[]>([]);
   const [round, setRound] = useState<number>(1);
   const [maxRound, setMaxRound] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // On mount, fetch all matches to determine the latest round
+  // On mount, fetch all matches and teams
   useEffect(() => {
     const init = async () => {
       try {
-        const allMatches: Match[] = await getMatches();
-        const completedMatches = allMatches.filter(m => m.status === "FT");
+        const [allMatchesData, teamsData]: [Match[], Team[]] = await Promise.all([getMatches(), getTeams()]);
+
+        const completedMatches = allMatchesData.filter(m => m.status === "FT");
         const latest = Math.max(...completedMatches.map(m => m.round));
+
+        setAllMatches(allMatchesData);
+        setTeams(teamsData);
         setMaxRound(latest);
         setRound(latest);
+        setStandings(calculateStandings(allMatchesData, teamsData));
       } catch (err) {
-        setError("Failed to load matches.");
+        setError("Failed to load data.");
       }
     };
     init();
   }, []);
 
-  // Fetch matches whenever round changes
+  // Fetch matches for selected round
   useEffect(() => {
     if (!round) return;
     const fetchRound = async () => {
@@ -52,96 +62,76 @@ const Home = () => {
   };
 
   return (
-    <div className='desktop'>
-      <div className='window' style={{ width: "520px", margin: "40px auto" }}>
-        {/* Title bar */}
-        <div className='window-title-bar'>
-          <span>⚽ EPL Tracker</span>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <button className='btn' style={{ padding: "0 6px" }}>
-              _
-            </button>
-            <button className='btn' style={{ padding: "0 6px" }}>
-              □
-            </button>
-            <button className='btn' style={{ padding: "0 6px" }}>
-              ✕
-            </button>
-          </div>
-        </div>
-
-        {/* Window content */}
-        <div className='window-content'>
-          {/* Results window */}
-          <div className='window' style={{ marginBottom: "8px" }}>
-            <div className='window-title-bar'>
-              <span>Results</span>
+    <div className='min-h-screen p-5'>
+      <div className='flex gap-2 items-start max-w-[960px] mx-auto mt-10'>
+        {/* Results window */}
+        <div className='flex-1 bg-[#c0c0c0] [box-shadow:var(--shadow-raised)] border border-[#404040]'>
+          <div className='bg-[#000080] text-white font-win95 text-base px-1 py-0.5 flex items-center justify-between select-none'>
+            <span>EPL Tracker — Results</span>
+            <div className='flex gap-0.5'>
+              <button className='font-win95 text-base bg-[#c0c0c0] border-none [box-shadow:var(--shadow-raised)] px-1.5 py-0 cursor-pointer text-black min-w-6 active:[box-shadow:var(--shadow-sunken)] disabled:text-[#808080] disabled:cursor-default'>
+                _
+              </button>
+              <button className='font-win95 text-base bg-[#c0c0c0] border-none [box-shadow:var(--shadow-raised)] px-1.5 py-0 cursor-pointer text-black min-w-6 active:[box-shadow:var(--shadow-sunken)] disabled:text-[#808080] disabled:cursor-default'>
+                □
+              </button>
+              <button className='font-win95 text-base bg-[#c0c0c0] border-none [box-shadow:var(--shadow-raised)] px-1.5 py-0 cursor-pointer text-black min-w-6 active:[box-shadow:var(--shadow-sunken)] disabled:text-[#808080] disabled:cursor-default'>
+                ✕
+              </button>
             </div>
-            <div className='window-content'>
-              {/* Round selector */}
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <button className='btn' onClick={() => setRound(r => r - 1)} disabled={round <= 1}>
-                  ◄
-                </button>
-                <div className='inset' style={{ flex: 1, textAlign: "center" }}>
-                  Gameweek {round}
-                </div>
-                <button className='btn' onClick={() => setRound(r => r + 1)} disabled={round >= maxRound}>
-                  ►
-                </button>
-              </div>
+          </div>
+          <div className='p-2'>
+            {/* Round selector */}
+            <div className='flex items-center gap-2 mb-2'>
+              <button
+                className='font-win95 text-base bg-[#c0c0c0] border-none [box-shadow:var(--shadow-raised)] px-3 py-0.5 cursor-pointer text-black min-w-6 active:[box-shadow:var(--shadow-sunken)] disabled:text-[#808080] disabled:cursor-default'
+                onClick={() => setRound(r => r - 1)}
+                disabled={round <= 1}
+              >
+                ◄
+              </button>
+              <div className='flex-1 text-center [box-shadow:var(--shadow-sunken)] bg-white p-1'>Gameweek {round}</div>
+              <button
+                className='font-win95 text-base bg-[#c0c0c0] border-none [box-shadow:var(--shadow-raised)] px-3 py-0.5 cursor-pointer text-black min-w-6 active:[box-shadow:var(--shadow-sunken)] disabled:text-[#808080] disabled:cursor-default'
+                onClick={() => setRound(r => r + 1)}
+                disabled={round >= maxRound}
+              >
+                ►
+              </button>
+            </div>
 
-              {/* Match list */}
-              <div className='inset'>
-                {loading && <div style={{ padding: "8px" }}>Loading...</div>}
-                {error && <div style={{ padding: "8px", color: "red" }}>{error}</div>}
-                {!loading && !error && matches.length === 0 && <div style={{ padding: "8px" }}>No matches found.</div>}
-                {!loading &&
-                  !error &&
-                  matches.map(match => (
-                    <div
-                      key={match.id}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr auto 1fr",
-                        alignItems: "center",
-                        padding: "4px 8px",
-                        borderBottom: "1px solid var(--surface-dark)",
-                        gap: "8px",
-                      }}
-                    >
-                      {/* Home team */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end" }}>
-                        <span>{match.home_team_name}</span>
-                        <img
-                          src={match.home_team_logo}
-                          alt={match.home_team_name}
-                          style={{ width: "16px", height: "16px" }}
-                        />
-                      </div>
-
-                      {/* Score */}
-                      <div style={{ textAlign: "center", minWidth: "48px" }}>
-                        {match.status === "FT"
-                          ? `${match.home_goals} - ${match.away_goals}`
-                          : formatDate(match.match_date)}
-                      </div>
-
-                      {/* Away team */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <img
-                          src={match.away_team_logo}
-                          alt={match.away_team_name}
-                          style={{ width: "16px", height: "16px" }}
-                        />
-                        <span>{match.away_team_name}</span>
-                      </div>
+            {/* Match list */}
+            <div className='[box-shadow:var(--shadow-sunken)] bg-white p-1'>
+              {loading && <div className='p-2'>Loading...</div>}
+              {error && <div className='p-2 text-red-600'>{error}</div>}
+              {!loading && !error && matches.length === 0 && <div className='p-2'>No matches found.</div>}
+              {!loading &&
+                !error &&
+                matches.map(match => (
+                  <div
+                    key={match.id}
+                    className='grid [grid-template-columns:1fr_auto_1fr] items-center px-2 py-1 border-b border-[#808080] gap-2'
+                  >
+                    <div className='flex items-center gap-1 justify-end'>
+                      <span>{match.home_team_name}</span>
+                      <img src={match.home_team_logo} alt={match.home_team_name} className='w-4 h-4' />
                     </div>
-                  ))}
-              </div>
+                    <div className='text-center min-w-[48px]'>
+                      {match.status === "FT"
+                        ? `${match.home_goals} - ${match.away_goals}`
+                        : formatDate(match.match_date)}
+                    </div>
+                    <div className='flex items-center gap-1'>
+                      <img src={match.away_team_logo} alt={match.away_team_name} className='w-4 h-4' />
+                      <span>{match.away_team_name}</span>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
+
+        <Table standings={standings} />
       </div>
     </div>
   );

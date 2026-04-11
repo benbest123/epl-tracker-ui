@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @font-face {
   font-family: "W95FA";
   src:
@@ -7,22 +9,15 @@
   font-style: normal;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@theme {
+  --font-win95: "W95FA", monospace;
 }
 
 :root {
-  --bg: #008080;
   --surface: #c0c0c0;
   --surface-dark: #808080;
   --surface-darker: #404040;
   --white: #ffffff;
-  --black: #000000;
-  --highlight: #000080;
-  --highlight-text: #ffffff;
-  --font: "W95FA", monospace;
   --shadow-raised:
     inset -1px -1px 0px var(--surface-darker), inset 1px 1px 0px var(--white), inset -2px -2px 0px var(--surface-dark),
     inset 2px 2px 0px var(--surface);
@@ -31,92 +26,8 @@
     inset 2px 2px 0px var(--surface-dark);
 }
 
-body {
-  background-color: var(--bg);
-  font-family: var(--font);
-  font-size: 16px;
-  color: var(--black);
-  min-height: 100vh;
-}
-
-/* ─── Window ─────────────────────────────────────────────── */
-.window {
-  background-color: var(--surface);
-  box-shadow: var(--shadow-raised);
-  border: 1px solid var(--surface-darker);
-}
-
-.window-title-bar {
-  background-color: var(--highlight);
-  color: var(--highlight-text);
-  font-family: var(--font);
-  font-size: 1rem;
-  padding: 2px 4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  user-select: none;
-}
-
-.window-content {
-  padding: 8px;
-}
-
-/* ─── Button ─────────────────────────────────────────────── */
-.btn {
-  font-family: var(--font);
-  font-size: 1rem;
-  background-color: var(--surface);
-  border: none;
-  box-shadow: var(--shadow-raised);
-  padding: 2px 12px;
-  cursor: pointer;
-  color: var(--black);
-  min-width: 24px;
-}
-
-.btn:active {
-  box-shadow: var(--shadow-sunken);
-}
-
-.btn:disabled {
-  color: var(--surface-dark);
-  cursor: default;
-}
-
-/* ─── Table ──────────────────────────────────────────────── */
-.win-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: var(--font);
-  font-size: 1rem;
-}
-
-.win-table th {
-  background-color: var(--surface);
-  box-shadow: var(--shadow-raised);
-  padding: 2px 8px;
-  text-align: left;
-}
-
-.win-table td {
-  padding: 2px 8px;
-  border-bottom: 1px solid var(--surface-dark);
-}
-
-.win-table tr.selected td {
-  background-color: var(--highlight);
-  color: var(--highlight-text);
-}
-
-/* ─── Inset panel ────────────────────────────────────────── */
-.inset {
-  box-shadow: var(--shadow-sunken);
-  background-color: var(--white);
-  padding: 4px;
-}
-
-.desktop {
-  min-height: 100vh;
-  padding: 20px;
+@layer base {
+  body {
+    @apply bg-[#008080] font-win95 text-base text-black min-h-screen;
+  }
 }

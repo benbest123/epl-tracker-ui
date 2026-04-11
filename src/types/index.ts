@@ -21,3 +21,15 @@ export interface Match {
   away_goals: number | null;
   result: string | null;
 }
+
+export interface Standing {
+  team: Team;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  points: number;
+}

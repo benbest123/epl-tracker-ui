@@ -11,4 +11,9 @@ export const getMatches = async (round?: number) => {
   return res.data;
 };
 
+export const getTeams = async () => {
+  const res = await api.get("/api/teams");
+  return res.data;
+};
+
 export default api;
